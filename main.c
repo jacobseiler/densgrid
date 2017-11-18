@@ -67,13 +67,26 @@ int main(int argc, char **argv)
 {
 
   grid_t grid_local;
+  int32_t file_idx;
 
   parse_params(argc, argv); // Set the input parameters. 
   init(&grid_local); // Initialize parameters. 
 
   printf("We are reading from %d files\n", num_files); 
-  free_localgrid(&grid_local);
 
+  for (file_idx = 0; file_idx < 1; ++file_idx)
+  {
+    // Get particles
+    // // Create a particle struct that holds the particles.
+    // // Malloc the struct and pass it to a function to be filled. Return the number of particles.
+
+    // For each particle determine the affected cells
+    // Place particle into cell
+    // // Loop over the number of particles (returned from filling function) and do this for each particle.
+  }
+  // Once all files have been filled, go back and normalize all of the arrays. 
+
+  free_localgrid(&grid_local);
   free(finbase);
   free(foutbase); 
   return 0;
