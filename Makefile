@@ -25,9 +25,11 @@ HDF5LIB = -L/usr/local/x86_64/gnu/hdf5-1.8.9/lib
 
 OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
 
+OPTS = -DBRITTON_SIM
+
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
 
-CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL) $(HDF5INCL) 
+CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL) $(HDF5INCL) $(OPTS) 
 
 default: all
 

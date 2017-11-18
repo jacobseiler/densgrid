@@ -27,12 +27,10 @@ void read_header(char *fname, hdf5_header file_header)
     exit(EXIT_FAILURE);
   }
 
-
   read_attribute_int(fname, "/Header", "NumPart_ThisFile", file_header->NumPart_ThisFile);
   read_attribute_int(fname, "/Header", "NumPart_Total", file_header->NumPart_Total);
   read_attribute_int(fname, "/Header", "NumPart_Total_HighWord", file_header->NumPart_Total_HighWord);
   read_attribute_int(fname, "/Header", "NumFilesPerSnapshot", &(file_header->NumFilesPerSnapshot));
-
 
   read_attribute_double(fname, "/Header", "MassTable", file_header->MassTable);
 #ifdef BRITTON_SIM
@@ -50,17 +48,13 @@ void read_header(char *fname, hdf5_header file_header)
   read_attribute_int(fname, "/Header", "Flag_Cooling", &(file_header->Flag_Cooling));
   read_attribute_int(fname, "/Header", "Flag_StellarAge", &(file_header->Flag_StellarAge));
   read_attribute_int(fname, "/Header", "Flag_DoublePrecision", &(file_header->Flag_DoublePrecision));
-
-  int i;
-  for (i = 0; i < 6; ++i)
-    printf("%.4f\n", file_header->MassTable[i]);
-
-  printf("%.4f\n", file_header->Redshift); 
-
+   
 }
 
-uint32_t get_numfiles(char *finbase)
+int32_t get_numfiles(char *finbase)
 {
+
+  int32_t numfiles;
 
   char buf[1024];
   hdf5_header file_header; 
@@ -76,10 +70,10 @@ uint32_t get_numfiles(char *finbase)
   }
 
   read_header(buf, file_header); // Passes the header struct to be filled.
+  numfiles = file_header->NumFilesPerSnapshot; 
+  free(file_header);
  
-
-  free(file_header); 
-  return 7; 
+  return numfiles; 
 
 }
 

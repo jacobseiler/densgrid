@@ -69,7 +69,9 @@ int main(int argc, char **argv)
   grid_t grid_local;
 
   parse_params(argc, argv); // Set the input parameters. 
-  init(&grid_local); // Initialize parameters.  
+  init(&grid_local); // Initialize parameters. 
+
+  printf("We are reading from %d files\n", num_files); 
   free_localgrid(&grid_local);
 
   free(finbase);

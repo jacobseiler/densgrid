@@ -992,7 +992,7 @@ read_attribute_double(char *file_name, char *groupname, char *attr_name, void *d
     }
     else if(attr_rank == 1)
     {
-        attr_dim = malloc(sizeof(int)*attr_rank);
+        attr_dim = malloc(sizeof(int)*attr_rank*6);
         if(attr_dim == NULL) {
             fprintf(stderr,  "dimensions of attribute in HDF5 file");
             exit(EXIT_FAILURE);
@@ -1145,7 +1145,7 @@ read_attribute_int(char *file_name, char *groupname, char *attr_name, void *data
     }
     else if(attr_rank == 1)
     {
-        attr_dim = malloc(sizeof(int)*attr_rank);
+        attr_dim = malloc(sizeof(int)*attr_rank*6);
         if(attr_dim == NULL) {
             fprintf(stderr,  "dimensions of attribute in HDF5 file");
             exit(EXIT_FAILURE);
@@ -1155,7 +1155,7 @@ read_attribute_int(char *file_name, char *groupname, char *attr_name, void *data
             fprintf(stderr, "Failed to get dimensions of attribute in HDF5 file");
             exit(EXIT_FAILURE);
         }
-        
+
         if(H5T_INTEGER == H5Tget_class(attr_type))
         {
             status = H5Aread(attr_id, H5T_NATIVE_INT, data);
