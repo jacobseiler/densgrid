@@ -27,12 +27,12 @@ void read_header(char *fname, hdf5_header file_header)
     exit(EXIT_FAILURE);
   }
 
-  read_attribute_int(fname, "/Header", "NumPart_ThisFile", file_header->NumPart_ThisFile);
-  read_attribute_int(fname, "/Header", "NumPart_Total", file_header->NumPart_Total);
-  read_attribute_int(fname, "/Header", "NumPart_Total_HighWord", file_header->NumPart_Total_HighWord);
+  read_attribute_int_array(fname, "/Header", "NumPart_ThisFile", file_header->NumPart_ThisFile, 6);
+  read_attribute_int_array(fname, "/Header", "NumPart_Total", file_header->NumPart_Total, 6);
+  read_attribute_int_array(fname, "/Header", "NumPart_Total_HighWord", file_header->NumPart_Total_HighWord, 6);
   read_attribute_int(fname, "/Header", "NumFilesPerSnapshot", &(file_header->NumFilesPerSnapshot));
-
-  read_attribute_double(fname, "/Header", "MassTable", file_header->MassTable);
+ 
+  read_attribute_double_array(fname, "/Header", "MassTable", file_header->MassTable, 6);
 #ifdef BRITTON_SIM
   file_header->MassTable[5] = 0.47143176; // For some reason Britton's Simulation does not contain the mass of PartType5 in the header.
 #endif
