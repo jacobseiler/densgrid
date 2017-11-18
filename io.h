@@ -7,10 +7,10 @@
 struct hdf5_header_struct
 {
 
-  uint32_t numpart_thisfile[6];
-  uint32_t numpart_total[6];
-  uint32_t numpart_highword[6];
-  double massarray[6];
+  uint32_t NumPart_ThisFile[6];
+  uint32_t NumPart_Total[6];
+  uint32_t NumPart_Total_HighWord[6];
+  double MassTable[6];
   double Time;
   double Redshift;
   double BoxSize;

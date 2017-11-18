@@ -9,6 +9,7 @@
 #include <assert.h>
 
 #include "io.h"
+#include "io_hdf5.h"
 
 // Proto-types //
 void read_header(char *fname, hdf5_header file_header);
@@ -19,6 +20,7 @@ void read_header(char *fname, hdf5_header file_header);
 // This function accepts an empty (but malloced) header struct to be read and filled.
 void read_header(char *fname, hdf5_header file_header)
 {
+    
   if (file_header == NULL)
   {
     fprintf(stderr, "read_header was called but the header struct has not yet been malloced\n");
@@ -26,6 +28,34 @@ void read_header(char *fname, hdf5_header file_header)
   }
 
 
+  read_attribute_int(fname, "/Header", "NumPart_ThisFile", file_header->NumPart_ThisFile);
+  read_attribute_int(fname, "/Header", "NumPart_Total", file_header->NumPart_Total);
+  read_attribute_int(fname, "/Header", "NumPart_Total_HighWord", file_header->NumPart_Total_HighWord);
+  read_attribute_int(fname, "/Header", "NumFilesPerSnapshot", &(file_header->NumFilesPerSnapshot));
+
+
+  read_attribute_double(fname, "/Header", "MassTable", file_header->MassTable);
+#ifdef BRITTON_SIM
+  file_header->MassTable[5] = 0.47143176; // For some reason Britton's Simulation does not contain the mass of PartType5 in the header.
+#endif
+
+  read_attribute_double(fname, "/Header", "Time", &(file_header->Time));
+  read_attribute_double(fname, "/Header", "Redshift", &(file_header->Redshift));
+  read_attribute_double(fname, "/Header", "BoxSize", &(file_header->BoxSize));
+  read_attribute_double(fname, "/Header", "Omega0", &(file_header->Omega0));
+  read_attribute_double(fname, "/Header", "OmegaLambda", &(file_header->OmegaLambda));
+  read_attribute_double(fname, "/Header", "HubbleParam", &(file_header->HubbleParam));
+
+  read_attribute_int(fname, "/Header", "Flag_Sfr", &(file_header->Flag_Sfr));
+  read_attribute_int(fname, "/Header", "Flag_Cooling", &(file_header->Flag_Cooling));
+  read_attribute_int(fname, "/Header", "Flag_StellarAge", &(file_header->Flag_StellarAge));
+  read_attribute_int(fname, "/Header", "Flag_DoublePrecision", &(file_header->Flag_DoublePrecision));
+
+  int i;
+  for (i = 0; i < 6; ++i)
+    printf("%.4f\n", file_header->MassTable[i]);
+
+  printf("%.4f\n", file_header->Redshift); 
 
 }
 
