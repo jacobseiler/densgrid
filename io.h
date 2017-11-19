@@ -9,7 +9,7 @@ struct hdf5_header_struct
 
   int32_t NumPart_ThisFile[6];
   uint32_t NumPart_Total[6];
-  uint32_t NumPart_Total_HighWord[6];
+  int32_t NumPart_Total_HighWord[6];
   double MassTable[6];
   double Time;
   double Redshift;
@@ -29,5 +29,5 @@ typedef struct hdf5_header_struct *hdf5_header;
 
 // Proto-Types //
 int32_t get_numfiles(char *finbase); 
-
+void read_header(char *fname, hdf5_header file_header);
 #endif

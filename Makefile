@@ -3,11 +3,13 @@ EXEC   = densgrid
 OBJS   = 	./main.o \
 			./grid.o \
 			./io.o	\
-			./io_hdf5.o
+			./io_hdf5.o \
+			./particles.o
 
 INCL   =	./grid.h \
 			./io.h \
 			./io_hdf5.h \
+			./particles.h \
 			./Makefile 
 
 

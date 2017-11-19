@@ -349,13 +349,25 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
     /* Open an existing file. */
     file_id     = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
 
+#ifdef DEBUG_HDF5
+    printf("Opened the file.\n");
+#endif
     /* Open an existing dataset. */
     dataset_id  = H5Dopen2(file_id, dataset_name, H5P_DEFAULT);
+
+#ifdef DEBUG_HDF5
+    printf("Dataset Read\n");
+#endif
 
     datatype    = H5Dget_type(dataset_id);     /* datatype handle */
     dataspace   = H5Dget_space(dataset_id);    /* dataspace handle */
     rank        = H5Sget_simple_extent_ndims(dataspace);
     dims_out    = malloc(sizeof(int)*rank);
+
+#ifdef DEBUG_HDF5
+    printf("Allocated a few other things\n");
+#endif
+
     if(dims_out == NULL) {
         fprintf(stderr,  "dimensions of HDF5 file");
         exit(EXIT_FAILURE);
@@ -365,7 +377,12 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
         fprintf(stderr, "Could not obtain dimension of dataset");
         
     }
-    
+
+#ifdef DEBUG_HDF5  
+    printf("Dimensions gotten\n");
+    printf("rank = %d\n", rank); 
+#endif
+
     /*
      * Define hyperslab in the dataset.
      */
@@ -379,17 +396,27 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
         fprintf(stderr,  "count array for reading HDF5 file");
         exit(EXIT_FAILURE);
     }
+   
+
     for(i=0; i<rank; i++)
     {
         offset[i]   = offset_in[i];
         count[i]    = count_in[i];
     }
+
+#ifdef DEBUG_HDF5
+    printf("More mallocs\n");
+#endif
     status = H5Sselect_hyperslab(dataspace, H5S_SELECT_SET, offset, NULL, count, NULL);
     if(status<0.){
         fprintf(stderr, "Failed to select hyperslab HDF5 file");
         exit(EXIT_FAILURE);
     }
-    
+   
+#ifdef DEBUG_HDF5
+    printf("Defined hyperslab\n");
+#endif
+ 
     /*
      * Define the memory dataspace.
      */
@@ -410,6 +437,11 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
      */
     
     status      = H5Dread(dataset_id, H5T_NATIVE_LONG, memspace, dataspace, H5P_DEFAULT, data_out);
+
+#ifdef DEBUG_HDF5
+    printf("Hyperslab read\n");
+#endif
+
     if(status<0.){
         fprintf(stderr, "Failed to read dataset in HDF5 file");
         exit(EXIT_FAILURE);

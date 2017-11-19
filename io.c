@@ -11,10 +11,6 @@
 #include "io.h"
 #include "io_hdf5.h"
 
-// Proto-types //
-void read_header(char *fname, hdf5_header file_header);
-
-
 // Functions //
 
 // This function accepts an empty (but malloced) header struct to be read and filled.

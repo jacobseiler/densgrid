@@ -16,4 +16,7 @@ read_attribute_double(char *file_name, char *groupname, char *attr_name, void *d
 extern int 
 read_attribute_double_array(char *file_name, char *groupname, char *attr_name, void *data, int32_t array_size);
 
+extern int 
+read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, int *count_in, void *data_out);
+
 #endif

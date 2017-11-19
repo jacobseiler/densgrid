@@ -14,7 +14,7 @@
 
 #include "io.h"
 #include "grid.h"
-
+#include "particles.h"
 
 // Local Variables //
 uint32_t GridSize;
@@ -76,6 +76,19 @@ int main(int argc, char **argv)
 
   for (file_idx = 0; file_idx < 1; ++file_idx)
   {
+    printf("Reading file %d\n", file_idx);
+
+    part_t particles_local;
+    particles_local = malloc(sizeof(struct particle_struct));
+
+
+    if (particles_local == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for local particles for file number %d\n", file_idx); 
+      exit(EXIT_FAILURE);
+    }
+
+    fill_particles(finbase, file_idx, particles_local);
     // Get particles
     // // Create a particle struct that holds the particles.
     // // Malloc the struct and pass it to a function to be filled. Return the number of particles.
@@ -83,6 +96,8 @@ int main(int argc, char **argv)
     // For each particle determine the affected cells
     // Place particle into cell
     // // Loop over the number of particles (returned from filling function) and do this for each particle.
+
+    free_localparticles(&particles_local);
   }
   // Once all files have been filled, go back and normalize all of the arrays. 
 
