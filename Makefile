@@ -10,26 +10,28 @@ INCL   =	./grid.h \
 			./io.h \
 			./io_hdf5.h \
 			./particles.h \
-			./Makefile 
+			./Makefile
+ 
+USE_MPI=FALSE
 
-
-ifdef USE-MPI
-    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
-    CC = mpicc  # sets the C-compiler
+ifeq ($(USE_MPI),TRUE)
+    OPTS := -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    CC := mpicc  # sets the C-compiler
+	LIBS := -lmpi
 else
     CC = cc  # sets the C-compiler
 endif
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
-HDF5INCL = -I/usr/local/x86_64/gnu/hdf5-1.8.9/include
-HDF5LIB = -L/usr/local/x86_64/gnu/hdf5-1.8.9/lib
+HDF5INCL = -I/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/include
+HDF5LIB = -L/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/lib
 
 OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
 
-OPTS = -DBRITTON_SIM #-DDEBUG_PARTBUFFER #-DDEBUG_HDF5 
+OPTS += -DBRITTON_SIM #-DDEBUG_PARTBUFFER #-DDEBUG_HDF5 
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
+LIBS   +=   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
 
 CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL) $(HDF5INCL) $(OPTS) 
 
@@ -51,4 +53,5 @@ tidy:
 celan celna clena claen:clean
 
 all:  tidy $(EXEC) clean
+	@if [ "$(USE_MPI)" = "TRUE" ]; then echo "RUNNING WITH MPI"; else echo "MPI DISABLED"; fi
 

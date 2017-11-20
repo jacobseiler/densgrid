@@ -10,11 +10,10 @@
 
 #include "grid.h"
 
-grid_t init_grid(uint32_t GridSize)
+grid_t malloc_grid(uint32_t GridSize)
 {
 
-  grid_t grid;
-  uint64_t i;
+  grid_t grid;  
 
   grid = malloc(sizeof(struct grid_struct));
   if (grid == NULL)
@@ -56,21 +55,25 @@ grid_t init_grid(uint32_t GridSize)
     exit(EXIT_FAILURE);
   }
 
-  // Initialize all the arrays //
-  for (i = 0; i < grid->NumCellsTotal; ++i)
-  {
-    grid->density[i] = 0.0;
-    grid->vx[i] = 0.0;
-    grid->vy[i] = 0.0;
-    grid->vz[i] = 0.0;
-  }    
-
   return grid;  
 }
 
-void free_localgrid(grid_t *grid)
+void init_grid(grid_t local_grid)
 {
+  uint64_t i; 
 
+  // Initialize all the arrays //
+  for (i = 0; i < local_grid->NumCellsTotal; ++i)
+  {
+    local_grid->density[i] = 0.0;
+    local_grid->vx[i] = 0.0;
+    local_grid->vy[i] = 0.0;
+    local_grid->vz[i] = 0.0;
+  }    
+}
+
+void free_grid(grid_t *grid)
+{
   free((*grid)->vz);  
   free((*grid)->vy);  
   free((*grid)->vx);  
