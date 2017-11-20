@@ -246,10 +246,15 @@ read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in,
     /* Open an existing dataset. */
     dataset_id  = H5Dopen2(file_id, dataset_name, H5P_DEFAULT);
 
+
+#ifdef DEBUG_HDF5
+    printf("Float HDF5 dataset opened\n");
+#endif
+
     datatype    = H5Dget_type(dataset_id);     /* datatype handle */
     dataspace   = H5Dget_space(dataset_id);    /* dataspace handle */
-    rank        = H5Sget_simple_extent_ndims(dataspace);
-    dims_out    = malloc(sizeof(int)*rank);
+    rank        = H5Sget_simple_extent_ndims(dataspace);    
+    dims_out    = malloc(sizeof(long int)*rank);
     if(dims_out == NULL) {
         fprintf(stderr,  "dimensions of HDF5 file");
         exit(EXIT_FAILURE);
@@ -260,15 +265,20 @@ read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in,
         
     }
     
+#ifdef DEBUG_HDF5
+    printf("Dimensions of float HDF5 file gotten\n");
+    printf("Rank of data is %d\n", rank);
+#endif
+
     /*
      * Define hyperslab in the dataset.
      */
-    offset      = malloc(sizeof(int)*rank);
+    offset      = malloc(sizeof(long int)*rank);
     if(offset == NULL) {
         fprintf(stderr,  "offset array for reading HDF5 file");
         exit(EXIT_FAILURE);
     }
-    count       = malloc(sizeof(int)*rank);
+    count       = malloc(sizeof(long int)*rank);
     if(count == NULL) {
         fprintf(stderr,  "count array for reading HDF5 file");
         exit(EXIT_FAILURE);
@@ -284,10 +294,14 @@ read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in,
         exit(EXIT_FAILURE);
     }
     
+#ifdef DEBUG_HDF5
+    printf("Float HDF5 hyperslab defined\n");
+#endif
+
     /*
      * Define the memory dataspace.
      */
-    dimsm        = malloc(sizeof(int)*rank);
+    dimsm        = malloc(sizeof(long int)*rank);
     if(dimsm == NULL) {
         fprintf(stderr,  "dimensions of memory space needed to read HDF5 file");
         exit(EXIT_FAILURE);
@@ -295,8 +309,15 @@ read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in,
     for(i=0; i<rank; i++)
     {
         dimsm[i] = count_in[i];
+#ifdef DEBUG_HDF5
+        printf("Count_in[%d] = %d\n", i, count_in[i]);
+#endif
     }
     memspace     = H5Screate_simple(rank,dimsm,NULL);
+
+#ifdef DEBUG_HDF5
+    printf("Float HDF5 memory dataspace defined.\n");
+#endif
 
     /*
      * Read data from hyperslab in the file into the hyperslab in
@@ -308,7 +329,11 @@ read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in,
         fprintf(stderr, "Failed to read dataset in HDF5 file");
         exit(EXIT_FAILURE);
     }
-        
+ 
+#ifdef DEBUG_HDF5
+    printf("Float HDF5 file fully read.\n");
+#endif
+       
     free(dims_out);
     free(offset);
     free(count);
@@ -362,7 +387,7 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
     datatype    = H5Dget_type(dataset_id);     /* datatype handle */
     dataspace   = H5Dget_space(dataset_id);    /* dataspace handle */
     rank        = H5Sget_simple_extent_ndims(dataspace);
-    dims_out    = malloc(sizeof(int)*rank);
+    dims_out    = malloc(sizeof(long int)*rank);
 
 #ifdef DEBUG_HDF5
     printf("Allocated a few other things\n");
@@ -386,18 +411,17 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
     /*
      * Define hyperslab in the dataset.
      */
-    offset      = malloc(sizeof(int)*rank);
+    offset      = malloc(sizeof(long int)*rank);
     if(offset == NULL) {
         fprintf(stderr,  "offset array for reading HDF5 file");
         exit(EXIT_FAILURE);
     }
-    count       = malloc(sizeof(int)*rank);
+    count       = malloc(sizeof(long int)*rank);
     if(count == NULL) {
         fprintf(stderr,  "count array for reading HDF5 file");
         exit(EXIT_FAILURE);
     }
    
-
     for(i=0; i<rank; i++)
     {
         offset[i]   = offset_in[i];
@@ -420,7 +444,8 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
     /*
      * Define the memory dataspace.
      */
-    dimsm        = malloc(sizeof(int)*rank);
+ 
+    dimsm        = malloc(sizeof(long int)*rank);
     if(dimsm == NULL) {
         fprintf(stderr,  "dimensions of memory space needed to read HDF5 file");
         exit(EXIT_FAILURE);
@@ -430,7 +455,14 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
         dimsm[i] = count_in[i];
     }
     memspace     = H5Screate_simple(rank,dimsm,NULL);
-
+/*
+        attr_dim = malloc(sizeof(int)*attr_rank * array_size);
+        if(attr_dim == NULL) {
+            fprintf(stderr,  "dimensions of attribute in HDF5 file");
+            exit(EXIT_FAILURE);
+        }
+        status = H5Sget_simple_extent_dims(attr_space, attr_dim, NULL);
+*/
     /*
      * Read data from hyperslab in the file into the hyperslab in
      * memory and display.

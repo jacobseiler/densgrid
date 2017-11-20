@@ -27,7 +27,7 @@ HDF5LIB = -L/usr/local/x86_64/gnu/hdf5-1.8.9/lib
 
 OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
 
-OPTS = -DBRITTON_SIM
+OPTS = -DBRITTON_SIM -DDEBUG_HDF5 #-DDEBUG_PARTBUFFER
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
 
