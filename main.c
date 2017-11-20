@@ -74,6 +74,9 @@ int main(int argc, char **argv)
 
   printf("We are reading from %d files\n", num_files); 
 
+  // TODO: Wrap this in an MPI statement similar to SAGE.
+  // Need another initialization so the grid can be zeroed for each iteration of file_idx. 
+
   for (file_idx = 0; file_idx < 1; ++file_idx)
   {
     printf("Reading file %d\n", file_idx);
@@ -112,6 +115,12 @@ int main(int argc, char **argv)
     free_localparticles(&particles_local);
   }
   // Once all files have been filled, go back and normalize all of the arrays. 
+ 
+  // TODO: Need an MPI gather so all the grids on each node can be collated back to the master process (simple summation).
+  // The normalization and write grid functions need to be wrapped an if(master) condition.
+ 
+  normalize_density(grid_local);
+  write_grids(foutbase, grid_local);
 
   free_localgrid(&grid_local);
   free(finbase);
