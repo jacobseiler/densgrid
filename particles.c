@@ -181,6 +181,26 @@ void fill_particles(char *finbase, int file_idx, part_t particle_buffer)
     }
     printf("Particle positions all read and stored properly\n");
 
+    // Particle Velocities //     
+    snprintf(dataset, 1024, "/PartType%d/Velocities", type_idx);   
+
+    // Note: Pointer float has already been malloced for the particle positions.
+#ifdef DEBUG_PARTBUFFER 
+    printf("Type_idx = %d \t Trying to read %d Positions from file %s\n", type_idx, (int) (particle_buffer->NumParticles_Total[type_idx]), fname);
+#endif 
+    
+    read_dataset_float(fname, dataset, 2, array_hdf5_offset, array_hdf5_count, pointer_float);
+    
+
+    for (part_idx = 0; part_idx < hdf5_count; ++part_idx)
+    {
+      particle_buffer->vx[part_idx + particle_buffer_offset] = pointer_float[part_idx*3]; // All the entries are stores in blocks of length 3.
+      particle_buffer->vy[part_idx + particle_buffer_offset] = pointer_float[(part_idx*3) + 1];
+      particle_buffer->vz[part_idx + particle_buffer_offset] = pointer_float[(part_idx*3) + 2];
+   
+    }
+    printf("Particle velocities all read and stored properly\n");
+
 /*
 struct particle_struct
 {
@@ -199,6 +219,11 @@ struct particle_struct
 
 }; 
 */
+
+#ifdef DEBUG_PARTBUFFER
+    printf("Particle 100 has the following properties: \t ID %ld \t posx %.4f \t posy %.4f \t posz %.4f \t vx %.4f \t vy %.4f \t vz %.4f\n", particle_buffer->ID[100], particle_buffer->posx[100], particle_buffer->posy[100], particle_buffer->posz[100], particle_buffer->vx[100], particle_buffer->vy[100], particle_buffer->vz[100]);
+#endif 
+
     particle_buffer_offset += hdf5_count;
 
 #ifdef DEBUG_PARTBUFFER
