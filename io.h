@@ -28,6 +28,6 @@ struct hdf5_header_struct
 typedef struct hdf5_header_struct *hdf5_header;
 
 // Proto-Types //
-int32_t get_numfiles(char *finbase); 
+void get_header_params(char *finbase, int32_t *num_files, double *BoxSize); 
 void read_header(char *fname, hdf5_header file_header);
 #endif

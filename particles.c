@@ -12,7 +12,7 @@
 #include "io.h"
 #include "io_hdf5.h"
 
-void fill_particles(char *finbase, int file_idx, part_t particle_buffer)
+void fill_particles(char *finbase, int32_t file_idx, part_t particle_buffer)
 {
 
   char fname[1024], dataset[1024];
@@ -56,6 +56,7 @@ void fill_particles(char *finbase, int file_idx, part_t particle_buffer)
   }  
 
   printf("The number of particles in this file is %ld\n", TotalPart_ThisFile);
+  particle_buffer->NumParticles_Total_AllType = TotalPart_ThisFile;
 
   // Allocating Memory to fit all these particles. //
 
@@ -201,34 +202,11 @@ void fill_particles(char *finbase, int file_idx, part_t particle_buffer)
     }
     printf("Particle velocities all read and stored properly\n");
 
-/*
-struct particle_struct
-{
-  uint64_t NumParticles_Total[6];
- 
-  uint64_t *ID;
-  double *mass;
-
-  double *posx;
-  double *posy;
-  double *posz;
-
-  double *vx;
-  double *vy;
-  double *vz;
-
-}; 
-*/
-
 #ifdef DEBUG_PARTBUFFER
     printf("Particle 100 has the following properties: \t ID %ld \t posx %.4f \t posy %.4f \t posz %.4f \t vx %.4f \t vy %.4f \t vz %.4f\n", particle_buffer->ID[100], particle_buffer->posx[100], particle_buffer->posy[100], particle_buffer->posz[100], particle_buffer->vx[100], particle_buffer->vy[100], particle_buffer->vz[100]);
 #endif 
 
     particle_buffer_offset += hdf5_count;
-
-#ifdef DEBUG_PARTBUFFER
-    printf("Read them in\n");
-#endif 
 
     free(pointer_long);
     free(pointer_float);
@@ -251,4 +229,83 @@ void free_localparticles(part_t *part_buffer)
   free((*part_buffer));
 }
 
+void place_particle(int32_t part_idx, part_t part_buffer, grid_t local_grid, double BoxSize)
+{
+
+  double Pos[3];
+  double Vel[3];
+  int32_t grid_idx, dim;
+
+  Pos[0] = part_buffer->posx[part_idx];  
+  Pos[1] = part_buffer->posy[part_idx];  
+  Pos[2] = part_buffer->posz[part_idx];  
+
+#ifdef BRITTON_SIM
+  // For Britton's Simulation we only care about the high-resolution zoom-in region.
+  // Hence discard any particles outside the region.
+
+  double bound_low = 775.0;
+  double bound_high = 825.0;
+  int accept_particle = 1;
+
+  for(dim = 0; dim < 3; ++dim)
+  {
+    if(Pos[dim] <= bound_low || Pos[dim] >= bound_high)
+    {
+      accept_particle = 0;
+    }
+  }
+
+  if (accept_particle == 0)
+  {
+    return;
+  }
+#endif  
+ 
+  Vel[0] = part_buffer->vx[part_idx];
+  Vel[1] = part_buffer->vy[part_idx];
+  Vel[2] = part_buffer->vz[part_idx];
+
+  grid_idx = determine_1D_idx(Pos, local_grid->GridSize, BoxSize); // Convert 3D x,y,z to 1D grid index.
+
+  // Now we have the grid location, add the properties to the grid. // 
+  local_grid->density[grid_idx] += part_buffer->mass[part_idx];
+  local_grid->vx[grid_idx] += part_buffer->vx[part_idx];
+  local_grid->vy[grid_idx] += part_buffer->vy[part_idx];
+  local_grid->vz[grid_idx] += part_buffer->vz[part_idx];
+
+}
+
+int32_t determine_1D_idx(double *Pos, int32_t GridSize, double BoxSize)
+{
+
+  int32_t grid_x, grid_y, grid_z, grid_1D;
+
+#ifdef BRITTON_SIM
+  double bound_low = 775.0;
+  double BoxSize_Britton = 50.0;
+
+  grid_x = (Pos[0] - bound_low) * GridSize / BoxSize_Britton; // Get the corresponding x, y, z indices.    
+  grid_y = (Pos[1] - bound_low) * GridSize / BoxSize_Britton;
+  grid_z = (Pos[2] - bound_low) * GridSize / BoxSize_Britton; 
+
+#else
+
+  grid_x = Pos[0] * GridSize / BoxSize; // Get the corresponding x, y, z indices.    
+  grid_y = Pos[1] * GridSize / BoxSize;
+  grid_z = Pos[2] * GridSize / BoxSize;
+#endif
+
+  grid_1D = grid_x * GridSize * GridSize + grid_y * GridSize + grid_z;  
+
+  if (grid_1D < 0 || grid_1D > GridSize * GridSize * GridSize)
+  {
+    fprintf(stderr, "The grid index is %d.  This is either negative or beyond the number of grid cells available (%ld).\n", grid_1D, (uint64_t) GridSize*GridSize*GridSize);
+    fprintf(stderr, "The position of the particle is x = %.4f \t y = %.4f \t z = %.4f\n", Pos[0], Pos[1], Pos[2]);
+    exit(EXIT_FAILURE);
+  }
+
+  return grid_1D;
+
+}
 

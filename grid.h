@@ -5,7 +5,7 @@
 
 struct grid_struct
 {
-  uint32_t GridSize; 
+  int32_t GridSize;   
   uint64_t NumCellsTotal;
   double *density;
   double *vx;

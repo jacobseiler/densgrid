@@ -47,10 +47,8 @@ void read_header(char *fname, hdf5_header file_header)
    
 }
 
-int32_t get_numfiles(char *finbase)
+void get_header_params(char *finbase, int32_t *num_files, double *BoxSize)
 {
-
-  int32_t numfiles;
 
   char buf[1024];
   hdf5_header file_header; 
@@ -66,11 +64,10 @@ int32_t get_numfiles(char *finbase)
   }
 
   read_header(buf, file_header); // Passes the header struct to be filled.
-  numfiles = file_header->NumFilesPerSnapshot; 
+  *num_files = file_header->NumFilesPerSnapshot;
+  *BoxSize = file_header->BoxSize; 
   free(file_header);
  
-  return numfiles; 
-
 }
 
 
