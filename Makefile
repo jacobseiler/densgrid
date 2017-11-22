@@ -12,14 +12,16 @@ INCL   =	./grid.h \
 			./particles.h \
 			./Makefile
  
-USE_MPI=FALSE
+USE_MPI=TRUE
+#USE_MPI=FALSE
 
 ifeq ($(USE_MPI),TRUE)
-    OPTS := -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    OPTS = -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 	LIBS := -lmpi
 else
     CC = cc  # sets the C-compiler
+	OPTS = 
 endif
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is

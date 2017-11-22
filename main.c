@@ -16,8 +16,10 @@
 #include "grid.h"
 #include "particles.h"
 
+#define	 CUBE(x) (x*x*x)
+
 // Local Variables //
-uint32_t GridSize;
+int32_t GridSize;
 char *finbase;
 char *foutbase;
 int32_t num_files;
@@ -31,7 +33,7 @@ char *ThisNode;
 // Proto-types //
 
 void parse_params(int argc, char **argv);
-void init(grid_t *grid);
+void init();
 
 // Functions //
 
@@ -67,10 +69,9 @@ void parse_params(int argc, char **argv)
   printf("==================================================\n\n");
 }
 
-void init(grid_t *grid)
+void init()
 {
 
-  *grid = malloc_grid(GridSize);
   get_header_params(finbase, &num_files, &BoxSize);
 
 }
@@ -99,12 +100,15 @@ int main(int argc, char **argv)
   atexit(bye);
  
   parse_params(argc, argv); // Set the input parameters. 
-  init(&local_grid); // Initialize parameters. 
-  init_grid(local_grid);
 
-  num_files = 1;
+  init(); // Grab a few parameters from the header file.
+
+  local_grid = malloc(sizeof(struct grid_struct));
+  malloc_grid(local_grid, GridSize);
+  init_grid(local_grid);  // Zero the grid cells. 
 
   printf("We are reading from %d files\n", num_files); 
+  num_files = 1;
 
 #ifdef MPI
   for (file_idx = ThisTask; file_idx < num_files; file_idx += NTask)
@@ -135,7 +139,7 @@ int main(int argc, char **argv)
           printf("Gridding particle %d\n", part_idx);
       }
       place_particle(part_idx, particles_local, local_grid, BoxSize);
-      // TODO: Implement a TCS.
+      // TODO: Implement a TSC.
     }
 
     free_localparticles(&particles_local);
@@ -145,26 +149,19 @@ int main(int argc, char **argv)
 #ifdef MPI
   // If we are running in parallel, want to sum all the grids back onto the master process before normalizing only the master grid.
 
+  printf("Now summing all grids on Task 0 and then normalizing\n");
   grid_t master_grid; 
 
-  master_grid = malloc_grid(GridSize);
-  init_grid(master_grid);
-
-  MPI_Reduce(local_grid->density, master_grid->density, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
-  MPI_Reduce(local_grid->vx, master_grid->vx, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
-  MPI_Reduce(local_grid->vy, master_grid->vy, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
-  MPI_Reduce(local_grid->vz, master_grid->vz, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  master_grid = MPI_grid_normalize(ThisTask, GridSize, local_grid); // Sum all the grids back onto Task0.
 
   if (ThisTask == 0)
   {    
-    normalize_density(master_grid);
+    normalize_density(master_grid); // Only normalize the master grid.
     write_grids(foutbase, master_grid);
+    free_grid(&master_grid); // Only Task0 had master_grid malloced.
   }
-
-  free_grid(&master_grid);
-
 #else
-
+  printf("Now normalizing the density grid\n");
   normalize_density(local_grid);
   write_grids(foutbase, local_grid);
 #endif 

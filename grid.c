@@ -8,54 +8,49 @@
 #include <sys/stat.h>
 #include <assert.h>
 
+#ifdef MPI
+#include <mpi.h>
+#endif
+
 #include "grid.h"
 
-grid_t malloc_grid(uint32_t GridSize)
+void malloc_grid(grid_t grid, int32_t GridSize)
 {
-
-  grid_t grid;  
-
-  grid = malloc(sizeof(struct grid_struct));
-  if (grid == NULL)
-  {
-    fprintf(stderr, "Could not allocate memory for the grid struct\n");
-    exit(EXIT_FAILURE);
-  }
 
   // General Information //
   grid->GridSize = GridSize;
   grid->NumCellsTotal = (uint64_t) GridSize * GridSize * GridSize;
+  uint64_t Ncells = CUBE(GridSize);
 
   // Property Arrays // 
-  grid->density = malloc(sizeof(double) * grid->NumCellsTotal);
+  grid->density = malloc(sizeof(double) * Ncells); 
   if (grid->density == NULL)
   {
     fprintf(stderr, "Could not allocate memory for the density of the grid\n");
     exit(EXIT_FAILURE);
   }
 
-  grid->vx = malloc(sizeof(double) * grid->NumCellsTotal);
+  grid->vx = malloc(sizeof(double) * Ncells); 
   if (grid->vx == NULL)
   {
     fprintf(stderr, "Could not allocate memory for vx for the grid\n");
     exit(EXIT_FAILURE);
   }
 
-  grid->vy = malloc(sizeof(double) * grid->NumCellsTotal);
+  grid->vy = malloc(sizeof(double) * Ncells); 
   if (grid->vy == NULL)
   {
     fprintf(stderr, "Could not allocate memory for vy for the grid\n");
     exit(EXIT_FAILURE);
   }
 
-  grid->vz = malloc(sizeof(double) * grid->NumCellsTotal);
+  grid->vz = malloc(sizeof(double) * Ncells); 
   if (grid->vz == NULL)
   {
     fprintf(stderr, "Could not allocate memory for vz for the grid\n");
     exit(EXIT_FAILURE);
   }
 
-  return grid;  
 }
 
 void init_grid(grid_t local_grid)
@@ -226,3 +221,25 @@ void write_grid_to_file(char *outfile, int32_t GridSize, double *variable)
 
 }
 
+#ifdef MPI
+grid_t MPI_grid_normalize(int32_t ThisTask, int32_t GridSize, grid_t local_grid)
+{
+
+  grid_t master_grid;
+  master_grid = malloc(sizeof(struct grid_struct));
+
+  if (ThisTask == 0)
+  {
+    malloc_grid(master_grid, GridSize);
+    init_grid(master_grid);
+  }
+
+  MPI_Reduce(local_grid->density, master_grid->density, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(local_grid->vx, master_grid->vx, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(local_grid->vy, master_grid->vy, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(local_grid->vz, master_grid->vz, local_grid->NumCellsTotal, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+
+  return master_grid;
+
+}
+#endif
