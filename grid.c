@@ -13,13 +13,20 @@
 #endif
 
 #include "grid.h"
+#include "io.h"
 
 void malloc_grid(grid_t grid, int32_t GridSize)
 {
 
+  if (grid == NULL)
+  {
+    fprintf(stderr, "malloc_grid was called with a pointer that has not been malloced\n");
+    exit(EXIT_FAILURE);
+  } 
+
   // General Information //
   grid->GridSize = GridSize;
-  grid->NumCellsTotal = (uint64_t) GridSize * GridSize * GridSize;
+  grid->NumCellsTotal = (uint64_t) CUBE(GridSize); 
   uint64_t Ncells = CUBE(GridSize);
 
   // Property Arrays // 
@@ -81,7 +88,7 @@ void place_particle(int32_t part_idx, part_t part_buffer, grid_t local_grid, dou
 
   double Pos[3];
   double Vel[3];
-  int32_t grid_idx, dim;
+  int32_t grid_idx;
 
   Pos[0] = part_buffer->posx[part_idx];  
   Pos[1] = part_buffer->posy[part_idx];  
@@ -90,10 +97,11 @@ void place_particle(int32_t part_idx, part_t part_buffer, grid_t local_grid, dou
 #ifdef BRITTON_SIM
   // For Britton's Simulation we only care about the high-resolution zoom-in region.
   // Hence discard any particles outside the region.
-
+  
+  int32_t dim;
   double bound_low = 775.0;
   double bound_high = 825.0;
-  int accept_particle = 1;
+  int32_t accept_particle = 1;
 
   for(dim = 0; dim < 3; ++dim)
   {
@@ -192,33 +200,105 @@ void normalize_density(grid_t local_grid)
   printf("Density grid has been normalized. Minimum (normalized) density is %.4e and maximum is %.4e\n", min_rho, max_rho);
 }
 
-void write_grids(char *foutbase, grid_t local_grid)
+int32_t write_grids(char *foutbase, int32_t precision, grid_t local_grid)
 {
 
   char outfile[1024];
+  
+  snprintf(outfile, 1024, "%s.dens.dat", foutbase);
+  write_grid_to_file(outfile, local_grid->GridSize, local_grid->density, precision); 
 
-  snprintf(outfile, 1024, "%s_density", foutbase);
-  write_grid_to_file(outfile, local_grid->GridSize, local_grid->density); 
+  snprintf(outfile, 1024, "%s.vx.dat", foutbase);
+  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vx, precision); 
+ 
+  snprintf(outfile, 1024, "%s.vy.dat", foutbase);
+  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vy, precision);
+ 
+  snprintf(outfile, 1024, "%s.vz.dat", foutbase);
+  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vz, precision); 
+
+  return EXIT_SUCCESS;
+}
+
+// Small function to check that the input precision of other functions is valid.
+int32_t check_precision(int32_t precision)
+{
+  if (precision == 0 || precision == 1 || precision == 2)
+  {
+    return EXIT_SUCCESS; // Acceptable precision format so continue.
+  }
+  else
+  {
+    fprintf(stderr, "Attempted to read a grid with an invalid format precision. The value entered was %d. Can only use 0 (integer), 1 (4 bit float), 2 (8 bit double)\n", precision);
+    exit(EXIT_FAILURE); 
+  }
+  
+  return EXIT_FAILURE;
+}
+
+int32_t read_grid(char *infile, int32_t GridSize, double *grid, int precision)
+{
+
+  FILE *read_file;  
+
+  if (!(read_file = fopen(infile, "r")))
+  {
+    fprintf(stderr, "Can't open file %s for reading\n", infile);
+    exit(EXIT_FAILURE);
+  }
+ 
+  if (precision == 0)
+  {
+    check_file_size(read_file, CUBE(GridSize)*4, infile);    
+    fread(grid, sizeof(int32_t), CUBE(GridSize), read_file);
+  }
+  else if (precision == 1)
+  { 
+    check_file_size(read_file, CUBE(GridSize)*4, infile);    
+    fread(grid, sizeof(float), CUBE(GridSize), read_file);
+  }
+  else if (precision == 2)
+  {  
+    check_file_size(read_file, CUBE(GridSize)*8, infile);    
+    fread(grid, sizeof(double), CUBE(GridSize), read_file);
+  }
+
+  printf("Successfully read from grid %s\n", infile);
+  return EXIT_SUCCESS;
  
 }
 
-void write_grid_to_file(char *outfile, int32_t GridSize, double *variable)
+
+int32_t write_grid_to_file(char *outfile, int32_t GridSize, double *variable, int32_t precision)
 {
 
   FILE *save_file = NULL;
-
+ 
+  check_precision(precision); // Ensure the input precision is acceptable.
+ 
   if (!(save_file = fopen(outfile, "w")))
   {
     fprintf(stderr, "Can't open file %s for writing\n", outfile);
     exit(EXIT_FAILURE);
   }
 
-  fwrite(variable, sizeof(double), GridSize*GridSize*GridSize, save_file);
-  fclose(save_file);
-  
+  if (precision == 0)
+  {
+    fwrite(variable, sizeof(int32_t), CUBE(GridSize), save_file);
+  }
+  else if (precision == 1)
+  {
+    fwrite(variable, sizeof(float), CUBE(GridSize), save_file);
+  }
+  else 
+  { 
+    fwrite(variable, sizeof(double), CUBE(GridSize), save_file);
+  }
+
+  fclose(save_file);  
   printf("Sucessfully wrote to %s\n", outfile);  
 
-
+  return EXIT_SUCCESS;
 }
 
 #ifdef MPI
@@ -243,3 +323,27 @@ grid_t MPI_grid_normalize(int32_t ThisTask, int32_t GridSize, grid_t local_grid)
 
 }
 #endif
+
+// This function add the properties of grid1 into grid2.
+
+int32_t add_grids(grid_t grid1, grid_t grid2)
+{
+
+  uint64_t cell_idx;
+
+  if (grid1->GridSize != grid2->GridSize)
+  {
+    fprintf(stderr, "Attempting to add two grids together that have different sizes. Grid 1 has a size %d and grid 2 has a size %d\n", grid1->GridSize, grid2->GridSize);
+    exit(EXIT_FAILURE);
+  }
+
+  for (cell_idx = 0; cell_idx < grid1->NumCellsTotal; ++cell_idx)
+  {
+    grid1->density[cell_idx] += grid2->density[cell_idx];
+    grid1->vx[cell_idx] += grid2->vx[cell_idx];
+    grid1->vy[cell_idx] += grid2->vy[cell_idx];
+    grid1->vz[cell_idx] += grid2->vz[cell_idx];
+  }
+    
+  return EXIT_SUCCESS;
+}
