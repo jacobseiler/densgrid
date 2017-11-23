@@ -1,1 +1,7 @@
-densfield
+densgrid
+*.log
+*.o
+myScripts/*.o
+myScripts/*.log
+myScripts/grid_normalize
+myScripts/sum_densfield
