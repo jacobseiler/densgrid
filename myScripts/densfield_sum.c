@@ -22,6 +22,8 @@ void parse_params(int argc, char **argv);
 void parse_params(int argc, char **argv)
 {
 
+  int32_t arg_idx;
+
   printf("Parsed %d parameters\n", argc);
   if (argc == 7 || argc == 8) // This can be run with either 7 or 8 input arguments.
   {
@@ -85,27 +87,33 @@ void parse_params(int argc, char **argv)
   else
   {
     printf("Summing up the Densfield grids with Mode of operation %d, GridSize %d, Input Densfield Base %s, Output name %s, Input chunks %d-%d and partial summed input grid %s\n", mode, GridSize, fin_densfield_grid, foutgrid, chunk_low, chunk_high, fin_partial_grid);
-  } 
+  }
+
+  printf("The run time command was ");
+  for (arg_idx = 0; arg_idx < argc; ++arg_idx)
+  {
+    printf("%s ", argv[arg_idx]);
+  }
+  printf("\n");
   printf("==================================================\n\n");
 }
 
-// Probably shouldn't have the same variable name as a variable that has already been declared within the scope but eh.
 int32_t fill_grid_from_file(char *filebase, int32_t precision, grid_t grid)
 {
 
   char fname[1024];
 
   snprintf(fname, 1024, "%s.dens.dat", filebase);
-  read_grid(fname, grid->GridSize, grid->density, precision);
+  read_grid_double(fname, grid->GridSize, grid->density);
 
   snprintf(fname, 1024, "%s.vx.dat", filebase);
-  read_grid(fname, grid->GridSize, grid->vx, precision);
+  read_grid_double(fname, grid->GridSize, grid->vx);
 
   snprintf(fname, 1024, "%s.vy.dat", filebase);
-  read_grid(fname, grid->GridSize, grid->vx, precision);
+  read_grid_double(fname, grid->GridSize, grid->vy); 
 
   snprintf(fname, 1024, "%s.vz.dat", filebase);
-  read_grid(fname, grid->GridSize, grid->vx, precision);
+  read_grid_double(fname, grid->GridSize, grid->vz);
 
   return EXIT_SUCCESS;
 

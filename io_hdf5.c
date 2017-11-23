@@ -1,3 +1,4 @@
+#ifdef USE_HDF5
 #include <hdf5.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -1404,4 +1405,4 @@ read_attribute_int_array(char *file_name, char *groupname, char *attr_name, void
     
     return 1;
 }
-
+#endif

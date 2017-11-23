@@ -206,16 +206,16 @@ int32_t write_grids(char *foutbase, int32_t precision, grid_t local_grid)
   char outfile[1024];
   
   snprintf(outfile, 1024, "%s.dens.dat", foutbase);
-  write_grid_to_file(outfile, local_grid->GridSize, local_grid->density, precision); 
+  write_grid_to_file_double(outfile, local_grid->GridSize, local_grid->density);
 
   snprintf(outfile, 1024, "%s.vx.dat", foutbase);
-  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vx, precision); 
+  write_grid_to_file_double(outfile, local_grid->GridSize, local_grid->vx);
  
   snprintf(outfile, 1024, "%s.vy.dat", foutbase);
-  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vy, precision);
+  write_grid_to_file_double(outfile, local_grid->GridSize, local_grid->vy);
  
   snprintf(outfile, 1024, "%s.vz.dat", foutbase);
-  write_grid_to_file(outfile, local_grid->GridSize, local_grid->vz, precision); 
+  write_grid_to_file_double(outfile, local_grid->GridSize, local_grid->vz);
 
   return EXIT_SUCCESS;
 }
@@ -236,7 +236,7 @@ int32_t check_precision(int32_t precision)
   return EXIT_FAILURE;
 }
 
-int32_t read_grid(char *infile, int32_t GridSize, double *grid, int precision)
+int32_t read_grid_double(char *infile, int32_t GridSize, double *grid)
 {
 
   FILE *read_file;  
@@ -247,21 +247,8 @@ int32_t read_grid(char *infile, int32_t GridSize, double *grid, int precision)
     exit(EXIT_FAILURE);
   }
  
-  if (precision == 0)
-  {
-    check_file_size(read_file, CUBE(GridSize)*4, infile);    
-    fread(grid, sizeof(int32_t), CUBE(GridSize), read_file);
-  }
-  else if (precision == 1)
-  { 
-    check_file_size(read_file, CUBE(GridSize)*4, infile);    
-    fread(grid, sizeof(float), CUBE(GridSize), read_file);
-  }
-  else if (precision == 2)
-  {  
-    check_file_size(read_file, CUBE(GridSize)*8, infile);    
-    fread(grid, sizeof(double), CUBE(GridSize), read_file);
-  }
+  check_file_size(read_file, CUBE(GridSize)*8, infile);    
+  fread(grid, sizeof(double), CUBE(GridSize), read_file);
 
   printf("Successfully read from grid %s\n", infile);
   return EXIT_SUCCESS;
@@ -269,12 +256,10 @@ int32_t read_grid(char *infile, int32_t GridSize, double *grid, int precision)
 }
 
 
-int32_t write_grid_to_file(char *outfile, int32_t GridSize, double *variable, int32_t precision)
+int32_t write_grid_to_file_double(char *outfile, int32_t GridSize, double *variable)
 {
 
   FILE *save_file = NULL;
- 
-  check_precision(precision); // Ensure the input precision is acceptable.
  
   if (!(save_file = fopen(outfile, "w")))
   {
@@ -282,18 +267,7 @@ int32_t write_grid_to_file(char *outfile, int32_t GridSize, double *variable, in
     exit(EXIT_FAILURE);
   }
 
-  if (precision == 0)
-  {
-    fwrite(variable, sizeof(int32_t), CUBE(GridSize), save_file);
-  }
-  else if (precision == 1)
-  {
-    fwrite(variable, sizeof(float), CUBE(GridSize), save_file);
-  }
-  else 
-  { 
-    fwrite(variable, sizeof(double), CUBE(GridSize), save_file);
-  }
+  fwrite(variable, sizeof(double), CUBE(GridSize), save_file);
 
   fclose(save_file);  
   printf("Sucessfully wrote to %s\n", outfile);  

@@ -9,10 +9,14 @@
 #include <assert.h>
 
 #include "io.h"
+
+#ifdef USE_HDF5
 #include "io_hdf5.h"
+#endif
 
 // Functions //
 
+#ifdef USE_HDF5
 // This function accepts an empty (but malloced) header struct to be read and filled.
 void read_header(char *fname, hdf5_header file_header)
 {
@@ -46,7 +50,9 @@ void read_header(char *fname, hdf5_header file_header)
   read_attribute_int(fname, "/Header", "Flag_DoublePrecision", &(file_header->Flag_DoublePrecision));
    
 }
+#endif
 
+#ifdef USE_HDF5
 void get_header_params(char *finbase, int32_t *num_files, double *BoxSize)
 {
 
@@ -69,6 +75,7 @@ void get_header_params(char *finbase, int32_t *num_files, double *BoxSize)
   free(file_header);
  
 }
+#endif
 
 void check_file_size(FILE *file, uint64_t expected_size, char *fname)
 {

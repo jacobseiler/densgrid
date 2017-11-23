@@ -1,3 +1,4 @@
+#ifdef USE_HDF5
 #ifndef IO_HDF5
 #define IO_HDF5
 
@@ -22,4 +23,5 @@ read_dataset_long(char *file_name, char *dataset_name, int dim, int *offset_in, 
 extern int 
 read_dataset_float(char *file_name, char *dataset_name, int dim, int *offset_in, int *count_in, void *data_out);
 
+#endif
 #endif

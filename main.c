@@ -32,7 +32,7 @@ char *ThisNode;
 
 // Proto-types //
 
-void parse_params(int argc, char **argv);
+void parse_params(int32_t argc, char **argv);
 void init();
 
 // Functions //
@@ -45,7 +45,7 @@ void bye()
 #endif
 }
 
-void parse_params(int argc, char **argv)
+void parse_params(int32_t argc, char **argv)
 {
 
   if (argc != 4)
@@ -168,6 +168,7 @@ int main(int argc, char **argv)
  
   free_grid(&local_grid);
   free(finbase);
-  free(foutbase); 
-  return 0;  
+  free(foutbase);
+ 
+  return EXIT_SUCCESS;
 } 

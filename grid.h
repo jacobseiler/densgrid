@@ -27,8 +27,8 @@ void place_particle(int32_t part_idx, part_t particle_buffer, grid_t local_grid,
 int32_t determine_1D_idx(double *Pos, int32_t GridSize, double BoxSize);
 void normalize_density(grid_t local_grid);
 int32_t write_grids(char *foutbase, int32_t precison, grid_t local_grid);
-int32_t write_grid_to_file(char *outfile, int32_t GridSize, double *variable, int32_t precision);
-int32_t read_grid(char *infile, int32_t GridSize, double *grid, int precision);
+int32_t write_grid_to_file_double(char *outfile, int32_t GridSize, double *variable);
+int32_t read_grid_double(char *infile, int32_t GridSize, double *grid);
 int32_t add_grids(grid_t grid1, grid_t grid2);
 int32_t check_precision(int32_t precision);
 
