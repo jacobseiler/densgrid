@@ -13,32 +13,45 @@
 
 #define	 CUBE(x) (x*x*x)
 
-int32_t mode, GridSize, snap_low, snap_high;
-char *fin_densgrid, *foutgrid, *fin_partialgrid;
-grid_t *inputgrid, *densgrid; // Note: Input grid is either a clean grid if mode = 0 or the one read in if mode = 1;
+int32_t mode, GridSize, chunk_low, chunk_high; 
+char *fin_densfield_grid, *foutgrid, *fin_partial_grid;
+
+int32_t fill_grid_from_file(char *filebase, int32_t precision, grid_t grid);
+void parse_params(int argc, char **argv);
 
 void parse_params(int argc, char **argv)
 {
 
-  if (argc == 6 || argc == 7) // This can be run with either 6 or 7 input arguments.
+  printf("Parsed %d parameters\n", argc);
+  if (argc == 7 || argc == 8) // This can be run with either 7 or 8 input arguments.
   {
     // Just fall through and run the code properly.
   }
   else
   {
     fprintf(stderr, "This sums up the individual chunk grids from densfield into a combined grid.\nWe can either initialize an empty grid or read in a previously defined partially summed grid to continue summing it.\n");
-    fprintf(stderr, "Usage : ./densgrid <Mode of Operation> <GridSize> <Input Densfield Grid> <Output Name> <Snapshot Low> <Snapshot High> <Input Summed Grid (if mode of Operation = 1)>\n");
+    fprintf(stderr, "Usage : ./densgrid <Mode of Operation> <GridSize> <Input Densfield Grid> <Output Name> <Chunk Low (Inclusive)> <Chunk High (Inclusive)> <Input Summed Grid (if mode of Operation = 1)>\n");
     exit(0);
   }
 
   mode = atoi(argv[1]);
-  if (mode != 0 || mode != 1)
+  if (mode == 0 || mode == 1)
   {
-    printf("The mode of operation must be either 0 (allocating a clean grid for the first summation) or 1 (reading in a partially summed grid to continue summing)\n");
+    // Acceptable mode values.
+  }
+  else
+  {
+    fprintf(stderr, "The mode of operation must be either 0 (allocating a clean grid for the first summation) or 1 (reading in a partially summed grid to continue summing)\n");
+    exit(EXIT_FAILURE);
   }
 
+  if (mode == 0 && argc == 8)
+  {
+    fprintf(stderr, "You have selected to allocate an empty grid but have also passed an argument for a partial summed grid.\n");
+    exit(EXIT_FAILURE);
+  }
 
-  if(mode == 0)
+  if (mode == 0)
   {
     printf("We are allocating a clean grid to do the first summation.\n");
   } else
@@ -50,32 +63,53 @@ void parse_params(int argc, char **argv)
   if (GridSize < 64 || GridSize > 2048)
   {
     fprintf(stderr, "The GridSize must be between 64 and 2048\n"); 
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 
-  fin_densgrid = strdup(argv[3]);
+  fin_densfield_grid = strdup(argv[3]);
   foutgrid = strdup(argv[4]);
 
-  snap_low = atoi(argv[5]);
-  snap_high = atoi(argv[6]);
+  chunk_low = atoi(argv[5]);
+  chunk_high = atoi(argv[6]);
 
   if (mode == 1)
   {
-    fin_partialgrid= strdup(argv[7]);
+    fin_partial_grid= strdup(argv[7]);
   }
 
   printf("==================================================\n");
   if (mode == 0)
   {
-    printf("Summing up the Densfield grids with Mode of operation %d, GridSize %d, Input Densfield Base %s, Output name %s, Input Snapshots %d-%d\n", mode, GridSize, fin_densgrid, foutgrid, snap_low, snap_high); 
+    printf("Summing up the Densfield grids with Mode of operation %d, GridSize %d, Input Densfield Base %s, Output name %s, Input chunks %d-%d\n", mode, GridSize, fin_densfield_grid, foutgrid, chunk_low, chunk_high); 
   }
   else
   {
-    printf("Summing up the Densfield grids with Mode of operation %d, GridSize %d, Input Densfield Base %s, Output name %s, Input Snapshots %d-%d and partial summed input grid %s\n", mode, GridSize, fin_densgrid, foutgrid, snap_low, snap_high, fin_partialgrid);
+    printf("Summing up the Densfield grids with Mode of operation %d, GridSize %d, Input Densfield Base %s, Output name %s, Input chunks %d-%d and partial summed input grid %s\n", mode, GridSize, fin_densfield_grid, foutgrid, chunk_low, chunk_high, fin_partial_grid);
   } 
   printf("==================================================\n\n");
 }
 
+// Probably shouldn't have the same variable name as a variable that has already been declared within the scope but eh.
+int32_t fill_grid_from_file(char *filebase, int32_t precision, grid_t grid)
+{
+
+  char fname[1024];
+
+  snprintf(fname, 1024, "%s.dens.dat", filebase);
+  read_grid(fname, grid->GridSize, grid->density, precision);
+
+  snprintf(fname, 1024, "%s.vx.dat", filebase);
+  read_grid(fname, grid->GridSize, grid->vx, precision);
+
+  snprintf(fname, 1024, "%s.vy.dat", filebase);
+  read_grid(fname, grid->GridSize, grid->vx, precision);
+
+  snprintf(fname, 1024, "%s.vz.dat", filebase);
+  read_grid(fname, grid->GridSize, grid->vx, precision);
+
+  return EXIT_SUCCESS;
+
+}
 
 int main(int argc, char **argv)
 {
@@ -87,19 +121,38 @@ int main(int argc, char **argv)
   // Add it to either the clean grid or the partially summed ones.
   // Write back out.
   
+  char fname_densfield_gridchunk[1024]; 
+  int32_t chunk_idx;
+
+  grid_t my_grid, densfield_grid; // Note: Input grid is either a clean grid if mode = 0 or the one read in if mode = 1;
 
   parse_params(argc, argv); // Set the input parameters. 
+ 
+  my_grid = malloc(sizeof(struct grid_struct));
+  densfield_grid = malloc(sizeof(struct grid_struct));
+  
+  malloc_grid(my_grid, GridSize); 
+  malloc_grid(densfield_grid, GridSize); 
 
-  inputgrid = malloc_grid(inputgrid);
-
-  if (mode == 0)
+  if (mode == 0) // If we want to start with a brand new grid, then initialize it all to 0.
   {
-
+    init_grid(my_grid);
   }
   else
   {
-    
-   
+    fill_grid_from_file(fin_partial_grid, 2, my_grid); // Otherwise read the grids from file.
+  } 
 
-  return 0;
+  for (chunk_idx = chunk_low; chunk_idx < chunk_high + 1; ++chunk_idx)
+  {
+  
+    snprintf(fname_densfield_gridchunk, 1024, "%s_chunk%d", fin_densfield_grid, chunk_idx);
+    fill_grid_from_file(fname_densfield_gridchunk, 2, densfield_grid);
+
+    add_grids(my_grid, densfield_grid);
+  }  
+
+  write_grids(foutgrid, 2, my_grid); 
+ 
+  return EXIT_SUCCESS;
 }

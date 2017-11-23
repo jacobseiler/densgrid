@@ -2,10 +2,12 @@ EXEC   = sum_densfield
 
 OBJS   = 	./densfield_sum.o \
 			../grid.o \
-			../io.o	
+			../io.o	\
+			../io_hdf5.o
 		
 INCL   =	../grid.h \
 			../io.h \
+			../io_hdf5.h \
 			./Makefile
  
 CC = cc  # sets the C-compiler
