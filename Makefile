@@ -1,12 +1,12 @@
-EXEC   = densgrid 
+EXECS   := densgrid 
 
-OBJS   = 	./main.o \
+OBJS   := 	./main.o \
 			./grid.o \
 			./io.o	\
 			./io_hdf5.o \
 			./particles.o
 
-INCL   =	./grid.h \
+INCL   :=	./grid.h \
 			./io.h \
 			./io_hdf5.h \
 			./particles.h \
@@ -24,36 +24,30 @@ else
 	OPTS = 
 endif
 
-GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
-GSL_LIBS = -L/usr/local/lib
-HDF5INCL = -I/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/include
-HDF5LIB = -L/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/lib
+GSL_DIR := $(shell gsl-config --prefix)
+GSL_INCL := $(shell gsl-config --cflags)
+GSL_LIBS := $(shell gsl-config --libs)
+GSL_LIBDIR := $(GSL_DIR)/lib
+HDF5INCL := -I/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/include
+HDF5LIB := -L/usr/local/x86_64/gnu/hdf5-1.8.17-openmpi-1.10.2-psm/lib
 
-OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
+OPTIMIZE = -g -O0 -Wall -Werror # optimization and warning flags
 
 OPTS += -DBRITTON_SIM #-DDEBUG_PARTBUFFER #-DDEBUG_HDF5 
 
-LIBS   +=   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
+LIBS   += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(HDF5LIB) -lhdf5 
 
 CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL) $(HDF5INCL) $(OPTS) 
 
-default: all
-
-$(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) 
-
-$(OBJS): $(INCL) 
+all: $(EXECS)
+	@if [ "$(USE_MPI)" = "TRUE" ]; then echo "RUNNING WITH MPI"; else echo "MPI DISABLED"; fi
+densgrid: $(OBJS)
+	$(CC) $(CCFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@ 
 
 clean:
 	rm -f $(OBJS)
 
-tidy:
-	rm -f $(OBJS) ./$(EXEC)
-
 .PHONY: all clean clena celan celna
 
 celan celna clena claen:clean
-
-all:  tidy $(EXEC) clean
-	@if [ "$(USE_MPI)" = "TRUE" ]; then echo "RUNNING WITH MPI"; else echo "MPI DISABLED"; fi
-
+	
