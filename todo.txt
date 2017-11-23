@@ -1,0 +1,7 @@
+=============
+List of TODOs
+=============
+
+Move the grid reading/writing functions into their own file (grid_io.c for example).
+Rework the grid_io functions to have different ones for reading int/float/doubles.
+Add compile options for float/double for densgrid/sum_densgrid and int/float/double for normalize_grid. 
