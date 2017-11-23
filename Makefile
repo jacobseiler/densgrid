@@ -41,11 +41,12 @@ CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL) $(HDF5INCL) $(OPTS)
 
 all: $(EXECS)
 	@if [ "$(USE_MPI)" = "TRUE" ]; then echo "RUNNING WITH MPI"; else echo "MPI DISABLED"; fi
+
 densgrid: $(OBJS)
 	$(CC) $(CCFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@ 
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXECS)
 
 .PHONY: all clean clena celan celna
 

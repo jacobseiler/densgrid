@@ -3,6 +3,8 @@ EXECS  := sum_densfield grid_normalize
 OBJS  := ../grid.o \
 	 ../io.o	\
 	 ../io_hdf5.o
+EXECS_OBJS := densfield_sum.o \
+			  normalize_grid.o
 INCL  := ../grid.h \
 	../io.h \
 	../io_hdf5.h \
@@ -35,7 +37,7 @@ grid_normalize: normalize_grid.o $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXECS_OBJS) $(EXECS)
 
 .PHONY: all clean clena celan celna
 
