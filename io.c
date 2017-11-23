@@ -70,4 +70,19 @@ void get_header_params(char *finbase, int32_t *num_files, double *BoxSize)
  
 }
 
+void check_file_size(FILE *file, uint64_t expected_size, char *fname)
+{
+  
+  uint64_t file_size;
 
+  fseek(file, 0L, SEEK_END); // Move to the end of the file 
+  file_size = ftell(file); // Then count how many bytes we have in it.
+  rewind(file);
+  
+  if (file_size != expected_size)
+  {
+    fprintf(stderr, "The size of the read file (%s) was %ld when we expected %ld\n", fname, file_size, expected_size);
+    exit(EXIT_FAILURE); 
+  } 
+
+}

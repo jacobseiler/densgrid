@@ -60,7 +60,7 @@ void parse_params(int argc, char **argv)
   if (GridSize < 64 || GridSize > 2048)
   {
     fprintf(stderr, "The GridSize must be between 64 and 2048\n"); 
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   finbase = strdup(argv[2]);
   foutbase = strdup(argv[3]);
@@ -157,13 +157,13 @@ int main(int argc, char **argv)
   if (ThisTask == 0)
   {    
     normalize_density(master_grid); // Only normalize the master grid.
-    write_grids(foutbase, master_grid);
+    write_grids(foutbase, 2, master_grid);
     free_grid(&master_grid); // Only Task0 had master_grid malloced.
   }
 #else
   printf("Now normalizing the density grid\n");
   normalize_density(local_grid);
-  write_grids(foutbase, local_grid);
+  write_grids(foutbase, 2, local_grid);
 #endif 
  
   free_grid(&local_grid);
